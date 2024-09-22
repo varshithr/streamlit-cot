@@ -78,21 +78,28 @@ Example of a valid JSON response:
     yield steps, total_thinking_time
 
 def run():
-    st.set_page_config(page_title="CoT", page_icon="🧠", layout="wide")
+    st.set_page_config(page_title="CoT", page_icon="", layout="wide")
     
-    st.title("Chain of Thought: Using Llama-3.1 70b on Groq to create o1-like reasoning chains")
+    st.title("Chain of Thought: AI will answer your questions by thinking about it, like a human")
     
-    # Text input for user query
-    user_query = st.text_input("Enter your query:", placeholder="e.g., How many 'R's are in the word strawberry?")
+    if "new_conversation" not in st.session_state:
+        st.session_state.new_conversation = False
+    
+    user_query = st.text_input("Enter your query:", placeholder="e.g., How many 'R's are in the word strawberry?", key="query")
+    
+    if st.button("Start a new conversation", key="new_conversation_button"):
+        st.session_state.new_conversation = True
+    
+    if st.session_state.new_conversation:
+        st.session_state.new_conversation = False
+        user_query = ""
     
     if user_query:
         st.write("Generating response...")
         
-        # Create empty elements to hold the generated text and total time
         response_container = st.empty()
         time_container = st.empty()
         
-        # Generate and display the response
         for steps, total_thinking_time in generate_response(user_query):
             with response_container.container():
                 for i, (title, content, thinking_time) in enumerate(steps):
@@ -103,10 +110,8 @@ def run():
                         with st.expander(title, expanded=True):
                             st.markdown(content.replace('\n', '<br>'), unsafe_allow_html=True)
             
-            # Only show total time when it's available at the end
             if total_thinking_time is not None:
                 time_container.markdown(f"**Total thinking time: {total_thinking_time:.2f} seconds**")
-
 
 if __name__ == "__main__":
     run()
